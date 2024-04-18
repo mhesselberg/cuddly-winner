@@ -78,7 +78,7 @@ jobs:
           nuget-version: '5.x'
 
       - name: 🌐 Push NuGet package live
-        run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+        run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
         shell: pwsh
 
       #TAG
