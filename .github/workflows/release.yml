@@ -1,0 +1,60 @@
+name: dotnet-build
+
+on:
+#  push:
+#    branches: [ "master" ]
+#  pull_request:
+#    branches: [ "master" ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    name: Build .NET
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix: 
+        os: [ubuntu-latest] #,windows-latest]
+
+    steps:
+    - name: 📄 Checkout
+      uses: actions/checkout@v4
+      
+    - name: 🛠️ Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: 🛠️ Restore dependencies
+      run: dotnet restore
+    - name: 🚀 Build
+      run: dotnet build --no-restore --configuration Release
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: 📦 Pack NuGet package
+      run: dotnet pack -p VersionPrefix=${{github.event.release.tag_name}} -p ReleaseNotes="${{github.event.release.body}}"
+
+    - name: 💾 Archive package
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: /home/runner/work/Github/GuidOne/src/GuidOne/bin/Release/GuidOne.*.nupkg
+
+    - name: 💾 Archive symbols package
+      uses: actions/upload-artifact@v3
+      with:
+        name: nuget-package
+        path: /home/runner/work/GuidOne/GuidOne/src/GuidOne/bin/Release/GuidOne.*.snupkg
+
+    - name: 🛠️ Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '5.x'
+
+    - name: 🌐 Push NuGet package live
+      run: nuget push/home/runner/work/GuidOne/GuidOne/src/GuidOne/bin/Release/GuidOne.*.nupkg -src https://api.nuget.org/v3/index.json
+      shell: powershell
+
+    - name: 🌐 Push NuGet symbol package live
+      run: nuget push /home/runner/work/GuidOne/GuidOne/src/GuidOne/bin/Release/GuidOne.*.snupkg -src https://api.nuget.org/v3/index.json
+      shell: powershell
