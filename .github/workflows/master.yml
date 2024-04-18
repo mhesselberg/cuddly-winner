@@ -1,26 +1,28 @@
-name: dotnet-build
+name: master
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "master" ]
+  release:
+    types: [ published ]
 
-concurrency: development
+concurrency: master
 
 jobs:
-  build-test-tag-and-publish-prerelease-nuget-package:
+  build-test-tag-and-publish-release-nuget-package:
     name: Build .NET
     runs-on: ${{matrix.os}}
     defaults:
       run:
         shell: pwsh
     strategy:
-      matrix: 
+      matrix:
         os: [ubuntu-latest] #,windows-latest]
 
     steps:
-    # DRYRUN
+      # DRYRUN
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -32,7 +34,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: true
           PRERELEASE_SUFFIX: prerelease
-          PRERELEASE: true
+          PRERELEASE: false
       - name: echo new tag
         run: |
           echo "The next tag version will be: ${{ steps.taggerDryRun.outputs.new_tag }}"
@@ -42,8 +44,8 @@ jobs:
       - name: echo part
         run: |
           echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
-
-    # BUILD
+      
+      # BUILD
       - name: 🛠️ Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -54,8 +56,8 @@ jobs:
         run: dotnet build --no-restore --configuration Release
       - name: Test
         run: dotnet test --no-build --verbosity normal
-
-    # NUGET
+      
+      # NUGET
       - name: 📦 Pack NuGet package
         run: dotnet pack -p VersionPrefix=${{steps.taggerDryRun.outputs.new_tag}} -p ReleaseNotes="${{github.event.release.body}}"
 
@@ -88,4 +90,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE_SUFFIX: prerelease
-          PRERELEASE: true
+          PRERELEASE: false
