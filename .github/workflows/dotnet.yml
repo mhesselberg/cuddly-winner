@@ -29,7 +29,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DRY_RUN: true
-          PRERELEASE_SUFFIX: prerelease
+          PRERELEASE_SUFFIX: beta
           PRERELEASE: true
       - name: echo new tag
         run: |
@@ -93,5 +93,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
-          PRERELEASE_SUFFIX: prerelease
+          PRERELEASE_SUFFIX: beta
           PRERELEASE: true
