@@ -14,4 +14,6 @@ public class LibraryTest
         // test that a new tag was added
         HelloWorldString = helloWorldString;
     }
+    
+    // test patch
 }
