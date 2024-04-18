@@ -16,9 +16,18 @@ jobs:
       matrix: 
         os: [ubuntu-latest] #,windows-latest]
 
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
     - name: 📄 Checkout
       uses: actions/checkout@v4
+
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@v1.67.0 # Don't use @master or @v1 unless you're happy to test the latest version
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        WITH_V: false
       
     - name: 🛠️ Setup .NET
       uses: actions/setup-dotnet@v4
@@ -37,24 +46,24 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: nuget-package
-        path: /home/runner/work/Github/GuidOne/src/GuidOne/bin/Release/GuidOne.*.nupkg
+        path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg
 
     - name: 💾 Archive symbols package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: nuget-package
-        path: /home/runner/work/GuidOne/GuidOne/src/GuidOne/bin/Release/GuidOne.*.snupkg
+        path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg
 
     - name: 🛠️ Setup NuGet
-      uses: nuget/setup-nuget@v1
+      uses: nuget/setup-nuget@v2
       with:
         nuget-api-key: ${{ secrets.NUGET_API_KEY }}
         nuget-version: '5.x'
 
     - name: 🌐 Push NuGet package live
-      run: nuget push/home/runner/work/GuidOne/GuidOne/src/GuidOne/bin/Release/GuidOne.*.nupkg -src https://api.nuget.org/v3/index.json
+      run: nuget push/home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -src https://api.nuget.org/v3/index.json
       shell: powershell
 
     - name: 🌐 Push NuGet symbol package live
-      run: nuget push /home/runner/work/GuidOne/GuidOne/src/GuidOne/bin/Release/GuidOne.*.snupkg -src https://api.nuget.org/v3/index.json
+      run: nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg -src https://api.nuget.org/v3/index.json
       shell: powershell
