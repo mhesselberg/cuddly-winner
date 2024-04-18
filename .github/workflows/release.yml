@@ -1,69 +1,99 @@
 name: dotnet-build
 
 on:
-#  push:
-#    branches: [ "master" ]
+  push:
+    branches: [ "master" ]
 #  pull_request:
 #    branches: [ "master" ]
-  release:
-    types: [ published ]
+#  release:
+#    types: [ published ]
+
+concurrency: release
 
 jobs:
-  build:
+  build-test-tag-and-publish-release-nuget-package:
     name: Build .NET
     runs-on: ${{matrix.os}}
     strategy:
-      matrix: 
+      matrix:
         os: [ubuntu-latest] #,windows-latest]
 
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
     steps:
-    - name: 📄 Checkout
-      uses: actions/checkout@v4
-
-    - name: Bump version and push tag
-      uses: anothrNick/github-tag-action@v1.67.0 # Don't use @master or @v1 unless you're happy to test the latest version
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
-        WITH_V: false
+      # DRYRUN
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: '0'
+      - name: Minor version for each merge
+        id: taggerDryRun
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DRY_RUN: true
+          PRERELEASE_SUFFIX: prerelease
+          PRERELEASE: false
+      - name: echo new tag
+        run: |
+          echo "The next tag version will be: ${{ steps.taggerDryRun.outputs.new_tag }}"
+      - name: echo tag
+        run: |
+          echo "The current tag is: ${{ steps.taggerDryRun.outputs.tag }}"
+      - name: echo part
+        run: |
+          echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
       
-    - name: 🛠️ Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: 🛠️ Restore dependencies
-      run: dotnet restore
-    - name: 🚀 Build
-      run: dotnet build --no-restore --configuration Release
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-    - name: 📦 Pack NuGet package
-      run: dotnet pack -p VersionPrefix=${{github.event.release.tag_name}} -p ReleaseNotes="${{github.event.release.body}}"
+      # BUILD
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: 🛠️ Restore dependencies
+        run: dotnet restore
+      - name: 🚀 Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+      
+      # NUGET
+      - name: 📦 Pack NuGet package
+        run: dotnet pack -p VersionPrefix=${{steps.taggerDryRun.outputs.new_tag}} -p ReleaseNotes="${{github.event.release.body}}"
 
-    - name: 💾 Archive package
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuget-package
-        path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg
+      - name: 💾 Archive package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg
 
-    - name: 💾 Archive symbols package
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuget-package
-        path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg
+      - name: 💾 Archive symbols package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg
 
-    - name: 🛠️ Setup NuGet
-      uses: nuget/setup-nuget@v2
-      with:
-        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
-        nuget-version: '5.x'
+      - name: 🛠️ Setup NuGet
+        uses: nuget/setup-nuget@v2
+        with:
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+          nuget-version: '5.x'
 
-    - name: 🌐 Push NuGet package live
-      run: nuget push/home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -src https://api.nuget.org/v3/index.json
-      shell: powershell
+      - name: 🌐 Push NuGet package live
+        run: nuget push/home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -src https://api.nuget.org/v3/index.json
+        shell: powershell
 
-    - name: 🌐 Push NuGet symbol package live
-      run: nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg -src https://api.nuget.org/v3/index.json
-      shell: powershell
+      - name: 🌐 Push NuGet symbol package live
+        run: nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg -src https://api.nuget.org/v3/index.json
+        shell: powershell
+
+
+
+
+      #TAG
+      - name: Minor version for each merge
+        id: taggerFinal
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          PRERELEASE_SUFFIX: prerelease
+          PRERELEASE: false
