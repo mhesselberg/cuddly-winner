@@ -57,13 +57,13 @@ jobs:
         run: dotnet pack -p VersionPrefix=${{steps.taggerDryRun.outputs.new_tag}} -p ReleaseNotes="${{github.event.release.body}}"
 
       - name: 💾 Archive package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: nuget-package
           path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg
 
       - name: 💾 Archive symbols package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: nuget-package
           path: /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg
