@@ -14,6 +14,9 @@ jobs:
   build-test-tag-and-publish-release-nuget-package:
     name: Build .NET
     runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: pwsh
     strategy:
       matrix:
         os: [ubuntu-latest] #,windows-latest]
@@ -78,11 +81,11 @@ jobs:
 
       - name: 🌐 Push NuGet package live
         run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -src https://api.nuget.org/v3/index.json
-        shell: powershell
+        shell: pwsh
 
       - name: 🌐 Push NuGet symbol package live
         run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg -src https://api.nuget.org/v3/index.json
-        shell: powershell
+        shell: pwsh
 
 
 
