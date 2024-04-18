@@ -1,4 +1,4 @@
-﻿namespace GithubNugetWorkflowPoc;
+namespace GithubNugetWorkflowPoc;
 
 public class LibraryTest
 {
@@ -14,6 +14,8 @@ public class LibraryTest
         // test that a new tag was added
         HelloWorldString = helloWorldString;
     }
+    
+    // test patch
     
     // used to trigger new minor
 }
