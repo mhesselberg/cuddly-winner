@@ -78,15 +78,12 @@ jobs:
           nuget-version: '5.x'
 
       - name: 🌐 Push NuGet package live
-        run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -s https://api.nuget.org/v3/index.json
+        run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
         shell: pwsh
 
       - name: 🌐 Push NuGet symbol package live
-        run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg -s https://api.nuget.org/v3/index.json
+        run: dotnet nuget push /home/runner/work/cuddly-winner/cuddly-winner/src/GithubNugetWorkflowPoc/bin/Release/GithubNugetWorkflowPoc.*.snupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
         shell: pwsh
-
-
-
 
       #TAG
       - name: Minor version for each merge
